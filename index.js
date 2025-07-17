@@ -1,28 +1,31 @@
 const express = require("express");
-const { Pool } = require("pg");
+const { Client } = require("pg");
 
 const app = express();
 const port = 3000;
 
-app.use(express.json());
-
-// EDIT THIS: Put your real credentials here
-const pool = new Pool({
-  user: "postgres",         // your username
+// Create a PostgreSQL client
+const con = new Client({
   host: "localhost",
-  database: "postgres",     // default database
-  password: "Ucsc.Cs.", // your password
+  user: "postgres",
   port: 5432,
+  password: "Ucsc.Cs.",
+  database: "focus_bloom",
 });
 
-// Test API to check DB connection
-app.get("/api/test", async (req, res) => {
+// Connect once when the server starts
+con.connect()
+  .then(() => console.log("Connected to the database"))
+  .catch(err => console.error("Connection error:", err));
+
+// API endpoint to get all users
+app.get("/api/users", async (req, res) => {
   try {
-    const result = await pool.query("SELECT NOW()");
-    res.json({ serverTime: result.rows[0].now });
+    const result = await con.query("SELECT * FROM user_table");
+    res.json(result.rows);
   } catch (err) {
-    console.error("Database connection error:", err);
-    res.status(500).json({ error: "DB connection failed" });
+    console.error("Query error:", err);
+    res.status(500).json({ error: "Database query failed" });
   }
 });
 
